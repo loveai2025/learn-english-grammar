@@ -1,0 +1,103 @@
+{{ define "quiz.html" }}
+{{ template "header" . }}
+<div class="bg-white shadow sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+            Quiz: {{ .Course.Title }}
+        </h3>
+    </div>
+    <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+        <form id="quiz-form">
+            <input type="hidden" id="course-id" value="{{ .Course.ID }}">
+            {{ range .Exercises }}
+            <div class="mb-6" id="exercise-{{ .ID }}">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    {{ .Question }}
+                </label>
+
+                {{ if eq .Type "choice" }}
+                <div class="space-y-2">
+                     <!-- Options handling -->
+                     <input type="text" name="exercise-{{ .ID }}" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Type your answer here">
+                </div>
+                {{ else }}
+                <div class="mt-1">
+                    <input type="text" name="exercise-{{ .ID }}" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Type your answer here">
+                </div>
+                {{ end }}
+
+                <div class="mt-2 text-sm hidden result-feedback" id="feedback-{{ .ID }}"></div>
+            </div>
+            {{ end }}
+
+            <div class="mt-5">
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    提交答案
+                </button>
+            </div>
+        </form>
+
+        <div id="quiz-result" class="mt-6 hidden">
+            <h4 class="text-lg font-bold">Results</h4>
+            <p id="score-display"></p>
+            <div id="next-action" class="mt-4"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('quiz-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const courseId = parseInt(document.getElementById('course-id').value);
+        const formData = new FormData(e.target);
+        const answers = {};
+
+        // Collect answers
+        for (let [key, value] of formData.entries()) {
+            if (key.startsWith('exercise-')) {
+                const id = parseInt(key.replace('exercise-', ''));
+                answers[id] = value;
+            }
+        }
+
+        const response = await fetch('/api/quiz/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                course_id: courseId,
+                answers: answers
+            })
+        });
+
+        const result = await response.json();
+
+        // Display results
+        document.getElementById('quiz-result').classList.remove('hidden');
+        document.getElementById('score-display').textContent = `You scored ${result.score} out of ${result.total}`;
+
+        // Show individual feedback
+        for (const [exId, isCorrect] of Object.entries(result.results)) {
+            const feedbackEl = document.getElementById(`feedback-${exId}`);
+            feedbackEl.classList.remove('hidden');
+            if (isCorrect) {
+                feedbackEl.textContent = "Correct!";
+                feedbackEl.classList.add('text-green-600');
+                feedbackEl.classList.remove('text-red-600');
+            } else {
+                feedbackEl.textContent = `Incorrect. ${result.explanation[exId]}`;
+                feedbackEl.classList.add('text-red-600');
+                feedbackEl.classList.remove('text-green-600');
+            }
+        }
+
+        if (result.passed) {
+            document.getElementById('next-action').innerHTML = '<a href="/learn/beginner" class="text-indigo-600 hover:text-indigo-500">Back to Courses</a>';
+        } else {
+             document.getElementById('next-action').innerHTML = '<button onclick="window.location.reload()" class="text-indigo-600 hover:text-indigo-500">Try Again</button>';
+        }
+    });
+</script>
+{{ template "footer" . }}
+{{ end }}

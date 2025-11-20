@@ -1,0 +1,33 @@
+{{ define "course_detail.html" }}
+{{ template "header" . }}
+<div class="bg-white overflow-hidden shadow sm:rounded-lg">
+    <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+            {{ .Course.Title }}
+        </h3>
+        <div class="mt-2 max-w-xl text-sm text-gray-500">
+            <p>Level: {{ .Course.Level }}</p>
+        </div>
+    </div>
+    <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
+        <div class="prose prose-indigo p-6">
+            <!-- In a real app, use a backend Markdown renderer or a frontend JS library like marked.js -->
+            <!-- Here we assume ContentMD is raw markdown and we use marked.js to render it -->
+            <div id="markdown-content" class="hidden">{{ .Course.ContentMD }}</div>
+            <div id="rendered-content"></div>
+        </div>
+    </div>
+    <div class="bg-gray-50 px-4 py-4 sm:px-6 flex justify-end">
+        <a href="/learn/{{ .Course.Level }}/{{ .Course.Slug }}/quiz" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            开始练习
+        </a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    const rawMarkdown = document.getElementById('markdown-content').textContent;
+    document.getElementById('rendered-content').innerHTML = marked.parse(rawMarkdown);
+</script>
+{{ template "footer" . }}
+{{ end }}
