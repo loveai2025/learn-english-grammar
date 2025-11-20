@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/user/egm/internal/database"
 	"github.com/user/egm/internal/models"
@@ -61,10 +63,22 @@ func QuizPage(c *gin.Context) {
 		return
 	}
 
+	// Parse options for the view
+	var exerciseViews []models.ExerciseView
+	for _, ex := range exercises {
+		view := models.ExerciseView{Exercise: ex}
+		if ex.Type == models.QuestionTypeChoice && ex.Options != "" {
+			var opts []string
+			json.Unmarshal([]byte(ex.Options), &opts)
+			view.ParsedOptions = opts
+		}
+		exerciseViews = append(exerciseViews, view)
+	}
+
 	c.HTML(http.StatusOK, "quiz.html", gin.H{
 		"Title":     "Quiz - " + course.Title,
 		"Course":    course,
-		"Exercises": exercises,
+		"Exercises": exerciseViews,
 	})
 }
 

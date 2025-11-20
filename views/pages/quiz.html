@@ -17,8 +17,15 @@
 
                 {{ if eq .Type "choice" }}
                 <div class="space-y-2">
-                     <!-- Options handling -->
-                     <input type="text" name="exercise-{{ .ID }}" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Type your answer here">
+                     {{ $exID := .ID }}
+                     {{ range .ParsedOptions }}
+                     <div class="flex items-center">
+                         <input id="ex-{{ $exID }}-{{ . }}" name="exercise-{{ $exID }}" type="radio" value="{{ . }}" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                         <label for="ex-{{ $exID }}-{{ . }}" class="ml-3 block text-sm font-medium text-gray-700">
+                             {{ . }}
+                         </label>
+                     </div>
+                     {{ end }}
                 </div>
                 {{ else }}
                 <div class="mt-1">

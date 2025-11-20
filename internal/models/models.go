@@ -41,10 +41,16 @@ type Exercise struct {
 	CourseID      uint         `json:"course_id"`
 	Course        Course       `json:"course,omitempty"`
 	Question      string       `json:"question"`
-	Options       string       `gorm:"type:jsonb" json:"options"` // Storing JSON as string or []byte for GORM, or use specific JSON type
+	Options       string       `gorm:"type:jsonb" json:"options"` // Storing JSON as string
 	CorrectAnswer string       `json:"correct_answer"`
 	Explanation   string       `json:"explanation"`
 	Type          QuestionType `gorm:"type:question_type" json:"type"`
+}
+
+// Helper struct for parsing options
+type ExerciseView struct {
+	Exercise
+	ParsedOptions []string
 }
 
 type UserProgress struct {
